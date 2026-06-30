@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  週次自動実行用 LaunchAgent。
+  設置先: ~/Library/LaunchAgents/com.user.rolexreservation.plist
+  Weekday: 0=日 1=月 2=火 3=水 4=木 5=金 6=土
+  下の Weekday / Hour / Minute を希望の実行タイミングに変更してください。
+  ※ reCAPTCHA画像認証が出た時に手動対応できる時間帯がおすすめです。
+
+  読み込み : launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.rolexreservation.plist
+  解除     : launchctl bootout   gui/$(id -u)/com.user.rolexreservation
+  即時実行 : launchctl kickstart -k gui/$(id -u)/com.user.rolexreservation
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.user.rolexreservation</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/myokota/git/RolexReservation/run.sh</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/myokota/git/RolexReservation</string>
+
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Weekday</key>
+        <integer>1</integer>
+        <key>Hour</key>
+        <integer>10</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/Users/myokota/git/RolexReservation/logs/launchd.stdout</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/myokota/git/RolexReservation/logs/launchd.stderr</string>
+
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>

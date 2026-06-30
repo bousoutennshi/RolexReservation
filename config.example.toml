@@ -1,0 +1,69 @@
+# =========================================================================
+#  RolexReservation 設定テンプレート
+#  使い方: このファイルを config.toml にコピーして自分の情報を記入してください。
+#    cp config.example.toml config.toml
+#  config*.toml は .gitignore 済み(個人情報を含むためコミットされません)。
+#
+#  店舗ごとに設定ファイルを分けて --config で切り替えます:
+#    ./venv/bin/python reserve.py                          # 既定 config.toml(表参道店)
+#    ./venv/bin/python reserve.py --config config.ginza.toml  # 銀座店
+# =========================================================================
+
+[personal]
+last_name      = "山田"          # 姓
+first_name     = "太郎"          # 名
+last_kananame  = "ヤマダ"        # セイ(全角カナ)
+first_kananame = "タロウ"        # メイ(全角カナ)
+birthday       = "1990-01-01"    # 生年月日 YYYY-MM-DD
+phone_number   = "09012345678"   # 自分の携帯番号(SMS認証コードが届く番号)
+email          = "you@example.com"
+
+[site]
+# 店舗名(ログ・通知の表示用)
+name      = "表参道店"
+# 開始URL。省略時は表参道店。銀座店は下記を使う:
+#   https://reservation.rolexboutique-lexia.jp/ginza/reservation
+# (銀座店は開始URLが直接「来店日選択」ページのため、予約タイプ選択は自動スキップ)
+start_url = "https://reservation.rolexboutique-omotesando-tokyo.jp/omotesando/reservation/distinction/select"
+
+[reservation]
+distinction = "1"                # 1=事前来店予約 / 2=RCPO中古 / 3=買取査定
+                                 # (開始URLが日時ページの店舗では未使用)
+
+# 希望日の優先順(YYYY-MM-DD)。先に見つかった利用可能日が選ばれます。
+# 空、またはどれも空きが無ければ「利用可能な最先の日」を自動選択。
+preferred_dates    = []          # 例: ["2026-07-19", "2026-07-13"]
+# 曜日優先(英3文字: Mon Tue Wed Thu Fri Sat Sun)。preferred_dates が空のとき使用。
+preferred_weekdays = ["Sat", "Sun"]
+
+# 最優先キーワード。時間枠テキストにこれを含む枠を「全日付を横断して」最優先で選びます。
+# (例: ロレックスは時間枠に "14:00 コスモグラフ デイトナ・GMTマスターll" のように
+#  モデル名が入る日があります)。複数該当時は preferred_dates/weekdays の順で選択。
+# 空にすると無効化。デフォルトは ["デイトナ", "Daytona"]。
+time_priority_keywords = ["デイトナ", "Daytona"]
+
+# 希望時間の優先順(部分一致)。time_priority_keywords に該当が無い場合に使用。
+# 空、またはマッチ無しなら利用可能な先頭の時間。
+preferred_times = ["11:00", "12:30", "14:00"]
+
+agree_marketing = false          # 営業案内の同意(check02)も入れるか
+
+[browser]
+channel     = "chrome"           # chrome(推奨) / chromium
+headless    = false              # reCAPTCHA対策で false 推奨
+# Googleログイン用の永続プロファイル(初回に手動でGoogleログインしておくと通過率↑)
+profile_dir = "~/.rolex_reservation_profile"
+slow_mo_ms  = 60                 # 操作間の遅延(人間らしさ)
+
+[recaptcha]
+# 画像チャレンジが出た場合に人間の手動解決を待つ最大秒数(0=待たず失敗扱い)
+human_fallback_seconds = 180
+
+[sms]
+code_regex      = '(\d{4,8})'    # 認証コード抽出(4〜8桁の数字)
+sender_contains = ""             # 送信者の絞り込み(空=全送信者)。例: "Rolex"
+poll_seconds    = 150            # SMS到着待ちの最大秒数
+lookback_seconds = 90            # 送信トリガ時刻から何秒前まで遡って探すか
+
+[notify]
+macos_notification = true        # 完了/失敗をmacOS通知で知らせる
