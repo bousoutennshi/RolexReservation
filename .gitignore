@@ -216,3 +216,15 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- RolexReservation project specific ---
+# 個人情報(氏名・電話・メール)を含む店舗別設定は除外。テンプレートのみ追跡。
+config.toml
+config.*.toml
+!config.example.toml
+# 実行ログ・スクリーンショット・HTMLダンプ
+logs/
+*.png
+*.html
+# Playwrightのセッション状態(あれば)
+auth_state.json
