@@ -366,6 +366,54 @@ def click_submit_like(page, names=("register", "confirm", "send", "submit")) -> 
 
 
 # --------------------------------------------------------------------------- #
+# 完了判定 / SMSコードの人手入力フォールバック
+# --------------------------------------------------------------------------- #
+COMPLETE_WORDS = ("完了", "受付", "ありがとう", "complete", "thank", "受け付け")
+# 「リクエスト受け付け停止中」ページ(枠未公開)の文言。select#first 自体が存在しない。
+STOPPED_WORDS = ("受け付け停止", "受付停止", "停止中", "Not accepting")
+
+
+def reservation_complete(page) -> bool:
+    """完了ページに到達しているか(URL または本文の文言で判定)。"""
+    try:
+        if page.is_closed():
+            return False
+        if "/complete" in (page.url or ""):
+            return True
+        return any(w in page.inner_text("body")[:2000] for w in COMPLETE_WORDS)
+    except Exception:
+        return False
+
+
+def wait_human_sms(page, cfg: dict) -> bool:
+    """SMSの自動読取が使えない/失敗した場合、ブラウザ上での手動入力を待つ。
+    reCAPTCHAの人手待ちと同じ方式(ビープ+通知して完了ページ到達をポーリング)。"""
+    secs = int(cfg.get("sms", {}).get("human_fallback_seconds", 300) or 0)
+    if secs <= 0:
+        log("SMS: human_fallback_seconds=0 のため手動入力を待たずに中止します")
+        return False
+    log(f"SMS: 認証コードの手動入力を最大{secs}秒待機します。"
+        "携帯に届いたコードを開いているブラウザに入力し『認証する』を押してください。")
+    notify("SMS認証 要対応", "認証コードを手動で入力してください", cfg)
+    beep()
+    dl = time.time() + secs
+    next_beep = time.time() + 45
+    while time.time() < dl:
+        if page.is_closed():
+            log("SMS: ブラウザが閉じられました")
+            return False
+        if reservation_complete(page):
+            log("SMS: 手動入力で認証が完了しました")
+            return True
+        if time.time() >= next_beep:
+            beep()
+            next_beep = time.time() + 45
+        time.sleep(2.0)
+    log("SMS: 手動入力の待機がタイムアウトしました")
+    return False
+
+
+# --------------------------------------------------------------------------- #
 # メインフロー
 # --------------------------------------------------------------------------- #
 def run(cfg: dict, args):
@@ -409,6 +457,23 @@ def run(cfg: dict, args):
             log(f"開始: {(site_name + ' ') if site_name else ''}{start_url}")
             page.goto(start_url, wait_until="networkidle")
             dump_page(page, "01_start")
+            # 受付停止中(枠未公開)のページには select#first が無い。
+            # 30秒タイムアウト+例外にせず、ここで理由を明示して終了する。
+            try:
+                page.wait_for_selector("select#first", timeout=8000)
+            except PWTimeout:
+                try:
+                    body = page.inner_text("body")[:200].replace("\n", " ").strip()
+                except Exception:
+                    body = ""
+                if any(w in body for w in STOPPED_WORDS):
+                    log(f"予約の受け付けが停止中です(枠未公開)。終了します。ページ文言: {body!r}")
+                    notify("ロレックス予約", f"{site_name} 受付停止中".strip(), cfg)
+                else:
+                    log("開始ページに選択フォーム(select#first)がありません。"
+                        f"logs/page_01_start.* を確認してください。ページ文言: {body!r}")
+                    notify("ロレックス予約 失敗", "開始ページ異常", cfg)
+                return
             # 開始URLが既に日時選択ページ(銀座店等)なら予約タイプ選択はスキップ
             if on_datetime_page(page):
                 log("開始URLが日時選択ページのため、予約タイプ選択をスキップします")
@@ -507,39 +572,49 @@ def run(cfg: dict, args):
             page.wait_for_load_state("networkidle")
             dump_page(page, "05_after_final_submit")
 
-            # ---- ⑥ SMSコード入力 ----
+            # ---- ⑥ SMSコード入力(自動読取→失敗時は人手入力にフォールバック) ----
             sms = cfg.get("sms", {})
-            log("SMS到着を待機します…")
-            code = sms_reader.wait_for_code(
-                trigger_unix,
-                code_regex=sms.get("code_regex", r"(\d{4,8})"),
-                sender_contains=sms.get("sender_contains", ""),
-                lookback_seconds=int(sms.get("lookback_seconds", 90)),
-                poll_seconds=int(sms.get("poll_seconds", 150)),
-            )
-            if not code:
-                log("SMSコードを取得できませんでした(到着遅延/抽出失敗)。")
-                notify("ロレックス予約 失敗", "SMSコード取得失敗", cfg)
+            code = None
+            try:
+                log("SMS到着を待機します…")
+                code = sms_reader.wait_for_code(
+                    trigger_unix,
+                    code_regex=sms.get("code_regex", r"(\d{4,8})"),
+                    sender_contains=sms.get("sender_contains", ""),
+                    lookback_seconds=int(sms.get("lookback_seconds", 90)),
+                    poll_seconds=int(sms.get("poll_seconds", 150)),
+                )
+            except sms_reader.FullDiskAccessError as e:
+                # python にフルディスクアクセスが無いと chat.db を読めない。
+                # ここで中断せず、ブラウザ上での手動入力に切替える。
+                log(f"SMS自動読取が使えません → 手動入力に切替えます。\n{e}")
+
+            if code:
+                log(f"SMSコード取得: {code}")
+                if not fill_sms_code(page, code):
+                    log("SMSコード入力欄が見つかりません。手動入力に切替えます。")
+                    dump_page(page, "06_sms_page_noinput")
+                elif not click_submit_like(
+                        page, names=("register", "confirm", "verify", "send", "submit")):
+                    log("SMS送信ボタンが見つかりません。手動入力に切替えます。")
+                else:
+                    dump_page(page, "06_sms_filled")
+                    page.wait_for_load_state("networkidle")
+            else:
+                log("SMSコードを自動取得できませんでした(未許可/到着遅延/抽出失敗)。")
                 dump_page(page, "06_sms_page_nocode")
-                return
-            log(f"SMSコード取得: {code}")
-            if not fill_sms_code(page, code):
-                log("SMSコード入力欄が見つかりません。logs/page_06_*.* を確認してください。")
-                dump_page(page, "06_sms_page_noinput")
-                notify("ロレックス予約 失敗", "SMS入力欄不明", cfg)
-                return
-            dump_page(page, "06_sms_filled")
-            if not click_submit_like(page, names=("register", "confirm", "verify", "send", "submit")):
-                log("SMS送信ボタンが見つかりません。")
-                notify("ロレックス予約 失敗", "SMS送信ボタン不明", cfg)
-                return
-            page.wait_for_load_state("networkidle")
+
+            # 自動入力で完了できていなければ人手入力を待つ
+            if not reservation_complete(page):
+                if not wait_human_sms(page, cfg):
+                    notify("ロレックス予約 失敗", "SMS認証を完了できず", cfg)
+                    dump_page(page, "06_sms_incomplete")
+                    return
 
             # ---- 完了判定 ----
             final = dump_page(page, "07_done")
             body_text = page.inner_text("body")[:2000]
-            ok_words = ("完了", "受付", "ありがとう", "complete", "thank", "受け付け")
-            if any(w in body_text for w in ok_words):
+            if any(w in body_text for w in COMPLETE_WORDS) or "/complete" in page.url:
                 log(f"予約応募が完了したようです 🎉 {site_name}".rstrip())
                 suffix = f"({site_name})" if site_name else ""
                 notify(f"ロレックス予約 完了{suffix}", f"{dtext} {ttext} で応募完了", cfg)

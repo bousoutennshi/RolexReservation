@@ -21,9 +21,12 @@ email          = "you@example.com"
 [site]
 # 店舗名(ログ・通知の表示用)
 name      = "表参道店"
-# 開始URL。省略時は表参道店。銀座店は下記を使う:
-#   https://reservation.rolexboutique-lexia.jp/ginza/reservation
-# (銀座店は開始URLが直接「来店日選択」ページのため、予約タイプ選択は自動スキップ)
+# 開始URL。省略時は表参道店。他店は下記を使う(いずれも開始URLが直接
+# 「来店日選択」ページになるため、予約タイプ選択は自動スキップされる):
+#   銀座店   https://reservation.rolexboutique-lexia.jp/ginza/reservation
+#   新宿店   https://reservation.rolexboutique-lexia.jp/shinjuku/reservation
+#   名古屋店 https://reservation.rolexboutique-lexia.jp/nagoya-sakae/reservation
+#   大阪店   https://reservation.rolexboutique-hiltonplaza-osaka.jp/osaka-umeda/reservation
 start_url = "https://reservation.rolexboutique-omotesando-tokyo.jp/omotesando/reservation/distinction/select"
 
 [reservation]
@@ -64,6 +67,8 @@ code_regex      = '(\d{4,8})'    # 認証コード抽出(4〜8桁の数字)
 sender_contains = ""             # 送信者の絞り込み(空=全送信者)。例: "Rolex"
 poll_seconds    = 150            # SMS到着待ちの最大秒数
 lookback_seconds = 90            # 送信トリガ時刻から何秒前まで遡って探すか
+# 自動読取が使えない/失敗した場合に、ブラウザ上での手動入力を待つ最大秒数(0=待たない)
+human_fallback_seconds = 300
 
 [notify]
 macos_notification = true        # 完了/失敗をmacOS通知で知らせる
