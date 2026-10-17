@@ -22,7 +22,7 @@ Playwright(実Chrome)でフォームを自動入力し、reCAPTCHA はプロフ�
 | `config.example.toml` | 設定テンプレート(→ `config.toml` にコピーして記入) |
 | `config.ginza.toml` | 銀座並木通り店用の設定(火曜13:00、`--config` で切替) |
 | `config.shinjuku.toml` | 新宿店用の設定(金曜17:00) |
-| `config.osaka.toml` | 大阪店(ヒルトンプラザ大阪 梅田)用の設定(水曜13:15デイトナ) |
+| `config.osaka.toml` | 大阪店(ヒルトンプラザ大阪 梅田)用の設定(金曜13:15デイトナ) |
 | `config.nagoya.toml` | 名古屋店(レキシア名古屋栄)用の設定(火曜12:00) |
 | `run.sh` | launchd/手動実行のラッパー |
 | `com.user.rolexreservation.plist` | 週次スケジュール(LaunchAgent) |
@@ -43,14 +43,14 @@ Playwright(実Chrome)でフォームを自動入力し、reCAPTCHA はプロフ�
 | 表参道店 | `config.toml`(既定) | 水曜 13:00(デイトナ枠なし=時間優先) |
 | 銀座並木通り店 | `config.ginza.toml` | 火曜 13:00(デイトナ枠なし=時間優先) |
 | 新宿店 | `config.shinjuku.toml` | 金曜 17:00(デイトナ枠なし=時間優先) |
-| 大阪店 | `config.osaka.toml` | 水曜 13:15 コスモグラフ デイトナ(キーワード優先) |
+| 大阪店 | `config.osaka.toml` | 金曜 13:15 コスモグラフ デイトナ(キーワード優先) |
 | 名古屋店 | `config.nagoya.toml` | 火曜 12:00(デイトナ枠なし=時間優先) |
 
 ```bash
 ./venv/bin/python reserve.py                                # 表参道店(水曜13:00)本番
 ./venv/bin/python reserve.py --config config.ginza.toml     # 銀座並木通り店(火曜13:00)本番
 ./venv/bin/python reserve.py --config config.shinjuku.toml  # 新宿店(金曜17:00)本番
-./venv/bin/python reserve.py --config config.osaka.toml     # 大阪店(水曜13:15デイトナ)本番
+./venv/bin/python reserve.py --config config.osaka.toml     # 大阪店(金曜13:15デイトナ)本番
 ./venv/bin/python reserve.py --config config.nagoya.toml    # 名古屋店(火曜12:00)本番
 # 各店とも --dry-date(空き確認・送信なし)/ --no-submit(安全テスト)を付与可能
 ```
