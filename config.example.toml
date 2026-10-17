@@ -6,7 +6,7 @@
 #
 #  店舗ごとに設定ファイルを分けて --config で切り替えます:
 #    ./venv/bin/python reserve.py                          # 既定 config.toml(表参道店)
-#    ./venv/bin/python reserve.py --config config.ginza.toml  # 銀座店
+#    ./venv/bin/python reserve.py --config config.ginza.toml  # 銀座並木通り店
 # =========================================================================
 
 [personal]
@@ -23,7 +23,8 @@ email          = "you@example.com"
 name      = "表参道店"
 # 開始URL。省略時は表参道店。他店は下記を使う(いずれも開始URLが直接
 # 「来店日選択」ページになるため、予約タイプ選択は自動スキップされる):
-#   銀座店   https://reservation.rolexboutique-lexia.jp/ginza/reservation
+#   銀座並木通り店 https://reservation.rolexboutique-lexia.jp/namiki/reservation
+#     (銀座本店 /ginza/reservation は 2026/08/23 来店分で受付終了)
 #   新宿店   https://reservation.rolexboutique-lexia.jp/shinjuku/reservation
 #   名古屋店 https://reservation.rolexboutique-lexia.jp/nagoya-sakae/reservation
 #   大阪店   https://reservation.rolexboutique-hiltonplaza-osaka.jp/osaka-umeda/reservation
