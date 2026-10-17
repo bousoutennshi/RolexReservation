@@ -148,7 +148,12 @@ def wait_for_code(trigger_unix: float,
     最初に見つかった認証コードを返す。タイムアウトで None。"""
     since = trigger_unix - lookback_seconds
     deadline = trigger_unix + poll_seconds
+    # トリガー(送信ボタン押下)より前から存在するメッセージを先に除外する。
+    # 連続実行時に直前の店舗宛の古いコードを再利用しないため。
     seen: set[int] = set()
+    for m in get_recent_messages(since, sender_contains):
+        if m.unixtime < trigger_unix:
+            seen.add(m.rowid)
     while time.time() < deadline:
         try:
             msgs = get_recent_messages(since, sender_contains)
