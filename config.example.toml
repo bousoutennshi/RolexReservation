@@ -28,6 +28,7 @@ name      = "表参道店"
 #   新宿店   https://reservation.rolexboutique-lexia.jp/shinjuku/reservation
 #   名古屋店 https://reservation.rolexboutique-lexia.jp/nagoya-sakae/reservation
 #   大阪店   https://reservation.rolexboutique-hiltonplaza-osaka.jp/osaka-umeda/reservation
+#   三越伊勢丹 日本橋店 https://reservation.rolexboutique-im.jp/nihombashi/reservation
 start_url = "https://reservation.rolexboutique-omotesando-tokyo.jp/omotesando/reservation/distinction/select"
 
 [reservation]
