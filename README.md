@@ -24,14 +24,14 @@ Playwright(実Chrome)でフォームを自動入力し、reCAPTCHA はプロフ�
 | `config.shinjuku.toml` | 新宿店用の設定(金曜17:00) |
 | `config.osaka.toml` | 大阪店(ヒルトンプラザ大阪 梅田)用の設定(金曜13:15デイトナ) |
 | `config.nagoya.toml` | 名古屋店(レキシア名古屋栄)用の設定(火曜12:00) |
-| `config.nihombashi.toml` | 三越伊勢丹 日本橋店用の設定(金曜13:00) |
+| `config.nihombashi.toml` | 三越伊勢丹 日本橋店用の設定(金曜13:00)。**予約サービス休止中のため現在は使用停止** |
 | `run.sh` | launchd/手動実行のラッパー |
 | `com.user.rolexreservation.plist` | 週次スケジュール(LaunchAgent) |
 
 `config*.toml`(`config.example.toml` を除く)と `logs/`、`venv/` は `.gitignore` 済み
 (個人情報・成果物はコミットされません)。
 
-### 複数店舗(表参道 / 銀座並木通り / 新宿 / 大阪 / 名古屋 / 日本橋)
+### 複数店舗(表参道 / 銀座並木通り / 新宿 / 大阪 / 名古屋。日本橋は休止中)
 設定ファイルを店舗ごとに分け、`--config` で切り替えます。`[site].start_url` で開始URLを指定。
 表参道以外は開始URLが直接「来店日選択」ページ(`func_distinction=1` を自動POST)のため、
 予約タイプ選択は自動でスキップされます。
@@ -46,7 +46,9 @@ Playwright(実Chrome)でフォームを自動入力し、reCAPTCHA はプロフ�
 | 新宿店 | `config.shinjuku.toml` | 金曜 17:00(デイトナ枠なし=時間優先) |
 | 大阪店 | `config.osaka.toml` | 金曜 13:15 コスモグラフ デイトナ(キーワード優先) |
 | 名古屋店 | `config.nagoya.toml` | 火曜 12:00(デイトナ枠なし=時間優先) |
+<!-- 休止中のためコメントアウト(2026-11-14)
 | 三越伊勢丹 日本橋店 | `config.nihombashi.toml` | 金曜 13:00(デイトナ枠なし=時間優先) |
+-->
 
 ```bash
 ./venv/bin/python reserve.py                                # 表参道店(水曜13:00)本番
@@ -54,9 +56,12 @@ Playwright(実Chrome)でフォームを自動入力し、reCAPTCHA はプロフ�
 ./venv/bin/python reserve.py --config config.shinjuku.toml  # 新宿店(金曜17:00)本番
 ./venv/bin/python reserve.py --config config.osaka.toml     # 大阪店(金曜13:15デイトナ)本番
 ./venv/bin/python reserve.py --config config.nagoya.toml    # 名古屋店(火曜12:00)本番
-./venv/bin/python reserve.py --config config.nihombashi.toml # 三越伊勢丹 日本橋店(金曜13:00)本番
+# ./venv/bin/python reserve.py --config config.nihombashi.toml # 三越伊勢丹 日本橋店(金曜13:00)本番 ※休止中
 # 各店とも --dry-date(空き確認・送信なし)/ --no-submit(安全テスト)を付与可能
 ```
+
+> **三越伊勢丹 日本橋店は 2026年11月時点で来店予約サービスを休止中**(リクエストフォームのメンテナンスのため。
+> 再開時期は未定)。上の表と実行例はコメントアウトし、`config.nihombashi.toml` は再開に備えて残しています。
 
 > **銀座本店(`/ginza/reservation`)は 2026年8月23日(日)ご来店分をもって事前来店予約サービスを終了**
 > しました。以後は**並木通り店(`/namiki/reservation`)**が対象で、`config.ginza.toml` は移行済みです。

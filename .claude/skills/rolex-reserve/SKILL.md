@@ -1,6 +1,6 @@
 ---
 name: rolex-reserve
-description: ロレックス事前来店予約サイトへ自動応募する(表参道店/銀座並木通り店/新宿店/大阪店/名古屋店/三越伊勢丹日本橋店)。Playwrightでフォーム自動入力、reCAPTCHAは手動解決、SMS認証コードはMacのメッセージ(chat.db)から自動入力。「ロレックスの予約」「予約を取って」「rolex reserve」等で起動。引数で店舗(omotesando/ginza/shinjuku/osaka/nagoya/nihombashi/all)とモード(--dry-date/--no-submit)を指定可。
+description: ロレックス事前来店予約サイトへ自動応募する(表参道店/銀座並木通り店/新宿店/大阪店/名古屋店。三越伊勢丹日本橋店は予約サービス休止中のため停止中)。Playwrightでフォーム自動入力、reCAPTCHAは手動解決、SMS認証コードはMacのメッセージ(chat.db)から自動入力。「ロレックスの予約」「予約を取って」「rolex reserve」等で起動。引数で店舗(omotesando/ginza/shinjuku/osaka/nagoya/all)とモード(--dry-date/--no-submit)を指定可。
 ---
 
 # ロレックス予約 自動応募スキル
@@ -21,11 +21,14 @@ description: ロレックス事前来店予約サイトへ自動応募する(表
 | 新宿店 (shinjuku / 新宿) | `config.shinjuku.toml` | 金曜 17:00 | 11:00 / 14:00 / 17:00 |
 | 大阪店 (osaka / 大阪 / 梅田) | `config.osaka.toml` | **金曜 13:15 コスモグラフ デイトナ** | 11:00 / 11:15デイトナ / 13:00 / 13:15デイトナ / 15:00 / 15:15デイトナ / 17:00 |
 | 名古屋店 (nagoya / 名古屋 / 栄) | `config.nagoya.toml` | **火曜 12:00** | 11:00 / 12:00 / 14:00 / 15:00 / 16:00 |
+<!-- 2026-11-14 休止中のためコメントアウト(注意の「日本橋店 休止中」参照)。再開したらこの行を表に戻す。
 | 三越伊勢丹 日本橋店 (nihombashi / 日本橋 / 三越) | `config.nihombashi.toml` | **金曜 13:00** | 10:00 / 13:00 / 16:00 |
+-->
 
 ## 手順
-1. **店舗の判定**: ユーザーの引数/指示から対象店舗を決める。`all` または「全部」なら6店すべて。
+1. **店舗の判定**: ユーザーの引数/指示から対象店舗を決める。`all` または「全部」なら上表の5店すべて。
    指定が無ければ `AskUserQuestion` で店舗(複数選択可)を確認する。
+   日本橋店を指定されたら、予約サービス休止中のため実行しないと伝える(実行しても 404 で必ず失敗する)。
 2. **モードの判定**: 既定は本番(実応募)。引数に応じて切替:
    - `--dry-date` … 空き枠の確認のみ(送信なし・reCAPTCHA不要)
    - `--no-submit` … フォーム入力とreCAPTCHAまで確認し確認ボタン直前で停止(送信なし)
@@ -38,7 +41,9 @@ description: ロレックス事前来店予約サイトへ自動応募する(表
    - 新宿:  `./venv/bin/python reserve.py --config config.shinjuku.toml [MODE]`
    - 大阪:  `./venv/bin/python reserve.py --config config.osaka.toml [MODE]`
    - 名古屋: `./venv/bin/python reserve.py --config config.nagoya.toml [MODE]`
+   <!-- 休止中のためコメントアウト(2026-11-14)
    - 日本橋: `./venv/bin/python reserve.py --config config.nihombashi.toml [MODE]`
+   -->
    - 複数店舗は1店ずつ順番に実行する(プロファイルを共用するため同時実行不可)。
 5. **結果の検証と報告**:
    - 本番は `logs/page_07_done.txt`(URLに `/complete/` を含み、希望日時が正しいか)を確認して報告。
@@ -56,4 +61,5 @@ description: ロレックス事前来店予約サイトへ自動応募する(表
 - **大阪店は受け付け時間帯が限られる**。期間外は「リクエスト受け付け停止中」ページが出て `select#first` が無く、スクリプトは次回受け付け開始日時を含むページ文言をログに出して正常終了する(2026-08-12 10:00 に受け付け開始し、以後は正常取得を確認済み)。失敗ではないので、ユーザーには受け付け開始時刻に再実行するよう伝える。
 - 大阪店・名古屋店は並木通り/新宿と同じ予約システム(開始URLが `func_distinction=1` を自動POSTして日時選択ページへ)。大阪はドメインのみ別(`rolexboutique-hiltonplaza-osaka.jp`)。
 - **三越伊勢丹 日本橋店(2026-10-20 追加)**は別ドメイン `reservation.rolexboutique-im.jp/nihombashi/reservation`。開始URLが直接日時選択ページで、`select#first`/`select#second`/`register` の構成は既存店と同じ。枠は 10:00 / 13:00 / 16:00(デイトナ枠なし)。追加時点の空き日は 11/04(水)〜11/08(日)の5日で、lexia系と違い水曜も出ていた。金曜は新宿17:00・大阪13:15と同日になる。
+- **日本橋店 休止中(2026-11-14 時点)**: リクエストフォームのメンテナンスで来店予約サービスが休止、再開時期は未定(公式告知 `https://www.rolexboutique-im.jp/info/2026/10/000254.html`)。開始URLはドメインごと `Microsoft-HTTPAPI/2.0` の 404 を返す。11/9 以降は直接来店とのこと。上の表と実行コマンドはコメントアウト中で、`config.nihombashi.toml` は再開に備えて残してある。再開したらコメントを外し、`--dry-date` で URL と枠を確認してから本番。
 - 空き日付は実行日の約12〜18日後の範囲で1週間ぶん出る(2026-08-12 実行時は 08/24〜08/30)。
