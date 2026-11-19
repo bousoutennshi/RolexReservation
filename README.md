@@ -22,7 +22,7 @@ Playwright(実Chrome)でフォームを自動入力し、reCAPTCHA はプロフ�
 | `config.example.toml` | 設定テンプレート(→ `config.toml` にコピーして記入) |
 | `config.ginza.toml` | 銀座並木通り店用の設定(火曜13:00、`--config` で切替) |
 | `config.shinjuku.toml` | 新宿店用の設定(金曜17:00) |
-| `config.osaka.toml` | 大阪店(ヒルトンプラザ大阪 梅田)用の設定(金曜13:15デイトナ) |
+| `config.osaka.toml` | 大阪店(ヒルトンプラザ大阪 梅田)用の設定(金曜13:00デイトナ・予約タイプ4) |
 | `config.nagoya.toml` | 名古屋店(レキシア名古屋栄)用の設定(火曜12:00) |
 | `config.nihombashi.toml` | 三越伊勢丹 日本橋店用の設定(金曜13:00)。**予約サービス休止中のため現在は使用停止** |
 | `run.sh` | launchd/手動実行のラッパー |
@@ -33,8 +33,9 @@ Playwright(実Chrome)でフォームを自動入力し、reCAPTCHA はプロフ�
 
 ### 複数店舗(表参道 / 銀座並木通り / 新宿 / 大阪 / 名古屋。日本橋は休止中)
 設定ファイルを店舗ごとに分け、`--config` で切り替えます。`[site].start_url` で開始URLを指定。
-表参道以外は開始URLが直接「来店日選択」ページ(`func_distinction=1` を自動POST)のため、
-予約タイプ選択は自動でスキップされます。
+表参道と大阪は予約タイプ選択ページを経由し、`[reservation].distinction` で予約タイプを選びます
+(大阪は `4` = 来店予約(コスモグラフ デイトナ))。それ以外は開始URLが直接「来店日選択」ページ
+(`func_distinction=1` を自動POST)のため、予約タイプ選択は自動でスキップされます。
 枠の選び方は設定で変えられます(例: デイトナ枠優先 or 時間優先)。
 
 希望条件は 2026-08-12 時点。東京3店は火/水/金に分散させています。
@@ -44,7 +45,7 @@ Playwright(実Chrome)でフォームを自動入力し、reCAPTCHA はプロフ�
 | 表参道店 | `config.toml`(既定) | 水曜 13:00(デイトナ枠なし=時間優先) |
 | 銀座並木通り店 | `config.ginza.toml` | 火曜 13:00(デイトナ枠なし=時間優先) |
 | 新宿店 | `config.shinjuku.toml` | 金曜 17:00(デイトナ枠なし=時間優先) |
-| 大阪店 | `config.osaka.toml` | 金曜 13:15 コスモグラフ デイトナ(キーワード優先) |
+| 大阪店 | `config.osaka.toml` | 金曜 13:00 コスモグラフ デイトナ(予約タイプ4・時間優先) |
 | 名古屋店 | `config.nagoya.toml` | 火曜 12:00(デイトナ枠なし=時間優先) |
 <!-- 休止中のためコメントアウト(2026-11-14)
 | 三越伊勢丹 日本橋店 | `config.nihombashi.toml` | 金曜 13:00(デイトナ枠なし=時間優先) |
@@ -54,7 +55,7 @@ Playwright(実Chrome)でフォームを自動入力し、reCAPTCHA はプロフ�
 ./venv/bin/python reserve.py                                # 表参道店(水曜13:00)本番
 ./venv/bin/python reserve.py --config config.ginza.toml     # 銀座並木通り店(火曜13:00)本番
 ./venv/bin/python reserve.py --config config.shinjuku.toml  # 新宿店(金曜17:00)本番
-./venv/bin/python reserve.py --config config.osaka.toml     # 大阪店(金曜13:15デイトナ)本番
+./venv/bin/python reserve.py --config config.osaka.toml     # 大阪店(金曜13:00デイトナ)本番
 ./venv/bin/python reserve.py --config config.nagoya.toml    # 名古屋店(火曜12:00)本番
 # ./venv/bin/python reserve.py --config config.nihombashi.toml # 三越伊勢丹 日本橋店(金曜13:00)本番 ※休止中
 # 各店とも --dry-date(空き確認・送信なし)/ --no-submit(安全テスト)を付与可能
@@ -66,8 +67,9 @@ Playwright(実Chrome)でフォームを自動入力し、reCAPTCHA はプロフ�
 > **銀座本店(`/ginza/reservation`)は 2026年8月23日(日)ご来店分をもって事前来店予約サービスを終了**
 > しました。以後は**並木通り店(`/namiki/reservation`)**が対象で、`config.ginza.toml` は移行済みです。
 
-> **デイトナ枠があるのは大阪店のみ**(11:15 / 13:15 / 15:15 コスモグラフ デイトナ)。
-> 他5店はモデル名付き枠が無いため `time_priority_keywords = []`(デイトナ優先を無効化)に加え、
+> **大阪店のデイトナは別の予約タイプ「来店予約(コスモグラフ デイトナ)」**(`distinction = "4"`)です。
+> 2026年11月19日時点で、通常の日時一覧からデイトナ枠(旧 11:15 / 13:15 / 15:15)は無くなり、
+> タイプ4の枠は 11:00 / 13:00 / 15:00 です。全店とも `time_priority_keywords = []`(キーワード優先を無効化)にし、
 > `preferred_weekdays` と `preferred_times` で曜日・時間を指定します。
 
 > **lexia系(並木通り / 新宿 / 名古屋)は水曜が空き日に出ません**(水曜定休と思われる)。表参道は木曜が
@@ -75,6 +77,8 @@ Playwright(実Chrome)でフォームを自動入力し、reCAPTCHA はプロフ�
 
 > 大阪店は**リクエスト受け付け時間帯が限られています**。期間外は「リクエスト受け付け停止中」
 > ページになり、スクリプトは次回受け付け開始日時をログに出して終了します(エラーではありません)。
+> 受付期間は毎週水曜 10:00〜次の日曜 23:59(2週先の月〜日分)で、**受付期間内はお一人様1回限り**です。
+> 重複したリクエストは全て無効になるため、同じ期間に通常とデイトナの両方へ応募しないでください。
 
 ---
 
