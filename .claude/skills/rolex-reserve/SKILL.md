@@ -8,7 +8,7 @@ description: ロレックス事前来店予約サイトへ自動応募する(表
 ロレックス各店の「事前来店予約」を自動応募する。実体は `reserve.py`(店舗ごとに config を切替)。
 
 ## プロジェクト
-- 作業ディレクトリ: `/Users/myokota/git/RolexReservation`
+- 作業ディレクトリ: `/Users/myokota/git/bousoutennshi/RolexReservation`
 - 実行は必ずこのディレクトリの venv で: `./venv/bin/python reserve.py [...]`
 
 ## 店舗と設定ファイル

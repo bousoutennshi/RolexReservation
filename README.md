@@ -82,7 +82,7 @@ Playwright(実Chrome)でフォームを自動入力し、reCAPTCHA はプロフ�
 
 ### 0) 依存(クローン直後のみ)
 ```bash
-cd /Users/myokota/git/RolexReservation
+cd /Users/myokota/git/bousoutennshi/RolexReservation
 python3 -m venv venv
 ./venv/bin/python -m pip install -U pip playwright
 ./venv/bin/python -m playwright install chromium
