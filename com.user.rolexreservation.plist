@@ -17,11 +17,11 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/myokota/git/RolexReservation/run.sh</string>
+        <string>/Users/myokota/git/bousoutennshi/RolexReservation/run.sh</string>
     </array>
 
     <key>WorkingDirectory</key>
-    <string>/Users/myokota/git/RolexReservation</string>
+    <string>/Users/myokota/git/bousoutennshi/RolexReservation</string>
 
     <key>StartCalendarInterval</key>
     <dict>
@@ -34,9 +34,9 @@
     </dict>
 
     <key>StandardOutPath</key>
-    <string>/Users/myokota/git/RolexReservation/logs/launchd.stdout</string>
+    <string>/Users/myokota/git/bousoutennshi/RolexReservation/logs/launchd.stdout</string>
     <key>StandardErrorPath</key>
-    <string>/Users/myokota/git/RolexReservation/logs/launchd.stderr</string>
+    <string>/Users/myokota/git/bousoutennshi/RolexReservation/logs/launchd.stderr</string>
 
     <key>RunAtLoad</key>
     <false/>
